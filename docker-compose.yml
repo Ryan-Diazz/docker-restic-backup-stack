@@ -1,0 +1,52 @@
+services:
+  appflowy-postgres-backup:
+    build: ./images/postgres-backup
+    container_name: appflowy-postgres-backup
+    environment:
+      TZ: ${TZ}
+      SERVICE: appflowy
+      CRON_SCHEDULE: ${APPFLOWY_POSTGRES_CRON}
+      POSTGRES_HOST: ${APPFLOWY_POSTGRES_HOST}
+      POSTGRES_DB: ${APPFLOWY_POSTGRES_DB}
+      POSTGRES_USER: ${APPFLOWY_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${APPFLOWY_POSTGRES_PASSWORD}
+    volumes:
+      - ./staging/appflowy/postgres:/backup
+    restart: unless-stopped
+    networks:
+      - appflowy_cloud_default
+  overleaf-mongo-backup:
+    build: ./images/mongo-backup
+    container_name: overleaf-mongo-backup
+    env_file:
+      - .env
+    environment:
+      SERVICE: overleaf
+      TZ: ${TZ}
+      CRON_SCHEDULE: ${OVERLEAF_MONGO_CRON}
+      MONGO_HOST: ${OVERLEAF_MONGO_HOST}
+    volumes:
+      - ./staging/overleaf/mongo:/backup
+    restart: unless-stopped
+    networks:
+      - overleaf_overleaf-net
+  restic:
+    build: ./images/restic
+    container_name: restic
+    environment:
+      TZ: ${TZ}
+      CRON_SCHEDULE: ${RESTIC_CRON}
+      RESTIC_REPOSITORY: /repository
+      RESTIC_PASSWORD: ${RESTIC_PASSWORD}
+    volumes:
+      - ./staging:/staging:ro
+      - ./backupsources:/data:ro
+      - /mnt/nas-backups:/repository
+      - ./restore:/restore
+      - ./scripts:/scripts
+    restart: unless-stopped
+networks:
+  appflowy_cloud_default:
+    external: true
+  overleaf_overleaf-net:
+    external: true
