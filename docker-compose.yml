@@ -3,7 +3,7 @@ services:
   # Appflowy
   # ==================
   backup-appflowy-postgres:
-    image: ghcr.io/ryan-diazz/postgres-backup:latest
+    image: ghcr.io/ryan-diazz/docker-backup-postgres:latest
     environment:
       TZ: ${TZ}
       SERVICE: appflowy
@@ -21,7 +21,7 @@ services:
   # Overleaf
   # ==================
   backup-overleaf-mongo:
-    image: ghcr.io/ryan-diazz/mongo-backup:latest
+    image: ghcr.io/ryan-diazz/docker-backup-mongo:latest
     environment:
       SERVICE: overleaf
       TZ: ${TZ}
@@ -36,7 +36,7 @@ services:
   # Restic
   # ==================
   backup-restic:
-    image: ghcr.io/ryan-diazz/restic-backup:latest
+    image: ghcr.io/ryan-diazz/docker-backup-restic:latest
     environment:
       TZ: ${TZ}
       CHECK_CRON_SCHEDULE: ${RESTIC_CRON_CHECK:-"0 4 * * 0"}
