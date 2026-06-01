@@ -1,2 +1,8 @@
 .env
-backupsources/*
+
+# Dump Container triggers (to trigger database dumps)
+triggers
+
+# Restic Directories
+restore
+staging

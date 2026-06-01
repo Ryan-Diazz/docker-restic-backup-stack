@@ -14,11 +14,11 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: postgres-backup
+          - name: docker-backup-postgres
             context: ./images/postgres-backup
-          - name: mongo-backup
+          - name: docker-backup-mongo
             context: ./images/mongo-backup
-          - name: restic-backup
+          - name: docker-backup-restic
             context: ./images/restic
 
     steps:

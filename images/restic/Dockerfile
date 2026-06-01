@@ -1,18 +1,17 @@
-FROM restic/restic:latest
+FROM restic/restic:0.17.3
 
 RUN apk add --no-cache \
     bash \
     curl \
-    tzdata \
-    nfs-utils
+    tzdata 
 
 ADD https://github.com/aptible/supercronic/releases/latest/download/supercronic-linux-amd64 /usr/local/bin/supercronic
 
 RUN chmod +x /usr/local/bin/supercronic
 
-COPY run-restic.sh /run-restic.sh
-COPY entrypoint.sh /entrypoint.sh
+WORKDIR /app
+COPY --chmod=755 run-restic.sh run-check.sh entrypoint.sh health.sh ./
 
-RUN chmod +x /run-restic.sh /entrypoint.sh
+HEALTHCHECK --interval=5m --timeout=60s --start-period=30s --retries=2 CMD "/app/health.sh" || exit 1
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/app/entrypoint.sh"]

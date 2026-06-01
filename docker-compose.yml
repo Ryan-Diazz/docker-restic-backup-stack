@@ -7,7 +7,6 @@ services:
     environment:
       TZ: ${TZ}
       SERVICE: appflowy
-      CRON_SCHEDULE: ${APPFLOWY_POSTGRES_CRON}
       POSTGRES_HOST: ${APPFLOWY_POSTGRES_HOST}
       POSTGRES_DB: ${APPFLOWY_POSTGRES_DB}
       POSTGRES_USER: ${APPFLOWY_POSTGRES_USER}
@@ -26,7 +25,6 @@ services:
     environment:
       SERVICE: overleaf
       TZ: ${TZ}
-      CRON_SCHEDULE: ${OVERLEAF_MONGO_CRON}
       MONGO_HOST: ${OVERLEAF_MONGO_HOST}
     volumes:
       - ./staging/overleaf/mongo:/backup
@@ -41,7 +39,6 @@ services:
     image: ghcr.io/ryan-diazz/restic-backup:latest
     environment:
       TZ: ${TZ}
-      CRON_SCHEDULE: ${RESTIC_CRON}
       CHECK_CRON_SCHEDULE: ${RESTIC_CRON_CHECK:-"0 4 * * 0"}
       RESTIC_REPOSITORY: /repository
       RESTIC_PASSWORD: ${RESTIC_PASSWORD}

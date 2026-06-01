@@ -1,9 +1,27 @@
 #!/bin/bash
 set -eo pipefail
 
-TIMESTAMP=$(date +%F-%H%M%S)
+exec 1>/proc/1/fd/1 2>/proc/1/fd/2
 
-echo "Restic backup started at ${TIMESTAMP}"
+trigger_all_dumps() {
+  local fifos
+  fifos=$(find /triggers -name "*.trigger" -type p)
+
+  if [ -z "${fifos}" ]; then
+    echo "ERROR: no trigger pipes found in /triggers" >&2
+    exit 1
+  fi
+
+  for fifo in ${fifos}; do
+    local service
+    service=$(basename "${fifo}" .trigger)
+    echo "Triggering dump for ${service}..."
+    if ! timeout 10 bash -c "echo backup > ${fifo}"; then
+      echo "ERROR: timeout sending trigger to ${service}, is the container running?" >&2
+      exit 1
+    fi
+  done
+}
 
 wait_for_all_locks() {
   local timeout=900 # 15 minutes for dumps to finish
@@ -21,6 +39,10 @@ wait_for_all_locks() {
   done
 }
 
+TIMESTAMP=$(date +%F-%H%M%S)
+echo "Restic backup started at ${TIMESTAMP}"
+
+trigger_all_dumps
 wait_for_all_locks
 
 restic backup \

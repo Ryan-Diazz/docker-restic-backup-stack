@@ -1,5 +1,7 @@
-#!/bin/bash
-set -eo pipefail
+#!/bin/sh
+set -e
+
+exec 1>/proc/1/fd/1 2>/proc/1/fd/2
 
 TIMESTAMP=$(date +%F-%H%M%S)
 echo "Postgres backup started at ${TIMESTAMP}"

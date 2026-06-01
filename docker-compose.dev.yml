@@ -1,0 +1,55 @@
+services:
+  appflowy-postgres-backup:
+    build:
+      context: ./images/postgres-backup
+      dockerfile: Dockerfile
+    container_name: appflowy-postgres
+    environment:
+      TZ: ${TZ}
+      SERVICE: appflowy
+      CRON_SCHEDULE: ${APPFLOWY_POSTGRES_CRON}
+      POSTGRES_HOST: ${APPFLOWY_POSTGRES_HOST}
+      POSTGRES_DB: ${APPFLOWY_POSTGRES_DB}
+      POSTGRES_USER: ${APPFLOWY_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${APPFLOWY_POSTGRES_PASSWORD}
+    volumes:
+      - ./staging/appflowy/postgres:/backup
+      - ./triggers:/triggers
+    restart: unless-stopped
+
+  overleaf-mongo-backup:
+    build:
+      context: ./images/mongo-backup
+      dockerfile: Dockerfile
+    container_name: overleaf-mongo
+    env_file:
+      - .env
+    environment:
+      SERVICE: overleaf
+      TZ: ${TZ}
+      CRON_SCHEDULE: ${OVERLEAF_MONGO_CRON}
+      MONGO_HOST: ${OVERLEAF_MONGO_HOST}
+    volumes:
+      - ./staging/overleaf/mongo:/backup
+      - ./triggers:/triggers
+    restart: unless-stopped
+
+  restic:
+    build:
+      context: ./images/restic
+      dockerfile: Dockerfile
+    container_name: restic
+    environment:
+      TZ: ${TZ}
+      CRON_SCHEDULE: ${RESTIC_CRON}
+      CHECK_CRON_SCHEDULE: ${RESTIC_CRON_CHECK:-"0 4 * * 0"}
+      RESTIC_REPOSITORY: /repository
+      RESTIC_PASSWORD: ${RESTIC_PASSWORD}
+    volumes:
+      - ./staging:/staging:ro
+      - ${STACKS_PATH:?STACKS_PATH is not set in .env}:/data:ro
+      - ${NAS_BACKUP_PATH:?NAS_BACKUP_PATH is not set in .env}:/repository
+      - ./restore:/restore
+      - ./scripts:/scripts
+      - ./triggers:/triggers
+    restart: unless-stopped
