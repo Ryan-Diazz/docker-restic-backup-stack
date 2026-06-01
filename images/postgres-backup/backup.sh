@@ -1,19 +1,30 @@
-#!/bin/sh
-set -e
+#!/bin/bash
+set -eo pipefail
 
-TIMESTAMP=$(date +%F-%H%M-%S)
+TIMESTAMP=$(date +%F-%H%M%S)
+echo "Postgres backup started at ${TIMESTAMP}"
 
-mkdir -p /backup
+LOCKFILE="/backup/.lock"
+touch "${LOCKFILE}"
+trap 'rm -f "${LOCKFILE}"' EXIT
 
 export PGPASSWORD="${POSTGRES_PASSWORD}"
+
+TMPFILE="/backup/${SERVICE}-latest.sql.gz.tmp"
+OUTFILE="/backup/${SERVICE}-latest.sql.gz"
 
 pg_dump \
   -h "${POSTGRES_HOST}" \
   -U "${POSTGRES_USER}" \
   "${POSTGRES_DB}" \
-  | gzip \
-  > "/backup/${SERVICE}-${TIMESTAMP}.sql.gz"
+  | gzip > "${TMPFILE}"
 
-find /backup -type f -mtime +7 -delete
+if [ ! -s "${TMPFILE}" ]; then
+  echo "ERROR: dump file is empty, aborting" >&2
+  exit 1
+fi
 
-echo "Postgres backup completed at $(date)"
+mv "${TMPFILE}" "${OUTFILE}"
+
+TIMESTAMP=$(date +%F-%H%M%S)
+echo "Postgres backup completed at ${TIMESTAMP}"

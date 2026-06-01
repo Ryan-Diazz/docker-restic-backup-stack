@@ -69,8 +69,6 @@ docker_backup_stack/
 ├── staging/
 │   ├── service/postgres/
 │   └── service/mongo/
-│
-├── backupsources/
 |
 ├── restore/
 │

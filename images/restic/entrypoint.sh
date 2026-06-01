@@ -1,5 +1,5 @@
-#!/bin/sh
-set -e
+#!/bin/bash
+set -eo pipefail
 
 export RESTIC_REPOSITORY
 export RESTIC_PASSWORD
@@ -9,6 +9,7 @@ if ! restic snapshots >/dev/null 2>&1; then
   restic init
 fi
 
-echo "${CRON_SCHEDULE} /run-restic.sh >> /proc/1/fd/1 2>&1" > /crontab
+printf '%s /app/run-restic.sh >> /proc/1/fd/1 2>&1\n' "${CRON_SCHEDULE}"       > /app/crontab
+printf '%s /app/run-check.sh  >> /proc/1/fd/1 2>&1\n' "${CHECK_CRON_SCHEDULE}"  >> /app/crontab
 
-exec supercronic /crontab
+exec supercronic /app/crontab

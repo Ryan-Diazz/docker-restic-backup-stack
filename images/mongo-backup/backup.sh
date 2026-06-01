@@ -1,15 +1,29 @@
-#!/bin/sh
-set -e
+#!/bin/bash
+set -eo pipefail
 
-TIMESTAMP=$(date +%F-%H%M-%S)
+TIMESTAMP=$(date +%F-%H%M%S)
+echo "Mongo backup started at ${TIMESTAMP}"
 
-mkdir -p /backup
+LOCKFILE="/backup/.lock"
+touch "${LOCKFILE}"
+trap 'rm -f "${LOCKFILE}"' EXIT
+
+TMPFILE="/backup/.${SERVICE}-${TIMESTAMP}.tmp"
+OUTFILE="/backup/${SERVICE}-latest.archive.gz"
+
 
 mongodump \
   --host="${MONGO_HOST}" \
-  --archive="/backup/${SERVICE}-${TIMESTAMP}.archive.gz" \
+  --serverSelectionTimeoutMS=5000 \
+  --archive="${TMPFILE}" \
   --gzip
 
-find /backup -type f -mtime +7 -delete
+if [ ! -s "${TMPFILE}" ]; then
+  echo "ERROR: dump file is empty, aborting" >&2
+  exit 1
+fi
 
-echo "Mongo backup completed at $(TIMESTAMP)"
+mv "${TMPFILE}" "${OUTFILE}"
+
+TIMESTAMP=$(date +%F-%H%M%S)
+echo "Mongo backup completed at ${TIMESTAMP}"
