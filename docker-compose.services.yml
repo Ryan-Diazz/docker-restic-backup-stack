@@ -1,0 +1,39 @@
+services:
+  # ==================
+  # Appflowy
+  # ==================
+  backup-appflowy-postgres:
+    image: ghcr.io/ryan-diazz/docker-backup-postgres:latest
+    environment:
+      TZ: ${TZ}
+      SERVICE: appflowy
+      POSTGRES_HOST: ${APPFLOWY_POSTGRES_HOST}
+      POSTGRES_DB: ${APPFLOWY_POSTGRES_DB}
+      POSTGRES_USER: ${APPFLOWY_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${APPFLOWY_POSTGRES_PASSWORD}
+    volumes:
+      - ./staging/appflowy/postgres:/backup
+    restart: unless-stopped
+    networks:
+      - appflowy_cloud_default
+
+  # ==================
+  # Overleaf
+  # ==================
+  backup-overleaf-mongo:
+    image: ghcr.io/ryan-diazz/docker-backup-mongo:latest
+    environment:
+      SERVICE: overleaf
+      TZ: ${TZ}
+      MONGO_HOST: ${OVERLEAF_MONGO_HOST}
+    volumes:
+      - ./staging/overleaf/mongo:/backup
+    restart: unless-stopped
+    networks:
+      - overleaf_overleaf-net
+
+networks:
+  appflowy_cloud_default:
+    external: true
+  overleaf_overleaf-net:
+    external: true
